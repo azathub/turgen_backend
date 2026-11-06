@@ -1,0 +1,33 @@
+-- 1. Categories Table (Sports Types: Football, Basketball, Tennis, etc.)
+CREATE TABLE categories (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  slug VARCHAR(100) UNIQUE NOT NULL
+);
+
+-- 2. Competitions Table (Leagues/Tournaments: LaLiga, Premier League, NBA, etc.)
+-- Optionally linked to a category_id to easily fetch all leagues for a specific sport
+CREATE TABLE competitions (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  slug VARCHAR(100) UNIQUE NOT NULL,
+  category_id INT REFERENCES categories(id) ON DELETE CASCADE
+);
+
+-- 3. Posts Table (Each post belongs to 1 Category and 1 Competition)
+CREATE TABLE posts (
+  id SERIAL PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  content TEXT NOT NULL,
+  thumbnail VARCHAR(255),
+  is_featured BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  category_id INT NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
+  competition_id INT REFERENCES competitions(id) ON DELETE SET NULL -- Optional: for general sport news without a specific league
+);
+
+-- Indexes for performance
+CREATE INDEX idx_posts_category ON posts(category_id);
+CREATE INDEX idx_posts_competition ON posts(competition_id);
+CREATE INDEX idx_posts_created_at ON posts(created_at DESC);
