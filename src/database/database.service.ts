@@ -20,25 +20,21 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
    * Establishes the database connection pool and verifies the connection.
    */
   async onModuleInit() {
-    // Initialize the PostgreSQL connection pool using the environment variable configuration
+    if (!process.env.DATABASE_URL) {
+      throw new Error('DATABASE_URL must be configured');
+    }
+
     this.pool = new Pool({
       connectionString: process.env.DATABASE_URL,
     });
 
     try {
-      // Check out a temporary client from the pool to test if the connection details are valid
       const client = await this.pool.connect();
-      console.log('📦 Successfully connected to PostgreSQL database!');
-
-      // Crucial: Release the test client back into the pool to make it available for future queries
       client.release();
+      console.log('Successfully connected to PostgreSQL database');
     } catch (error) {
-      // Provide clean error handling details if the connection handshake fails
-      if (error instanceof Error) {
-        console.error(`Database connection failed: ${error.message}`);
-      } else {
-        console.error('An unexpected error occurred:', String(error));
-      }
+      await this.pool.end();
+      throw new Error('Database connection failed', { cause: error });
     }
   }
 
@@ -50,7 +46,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     // Only attempt to tear down the pool if it was successfully initialized first
     if (this.pool) {
       await this.pool.end();
-      console.log('🔌 PostgreSQL pool has been closed cleanly.');
+      console.log('PostgreSQL connection pool closed');
     }
   }
 
@@ -67,7 +63,6 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     text: string,
     params?: any[],
   ): Promise<pkg.QueryResult<T>> {
-    // Delegates the query execution safely to the under-the-hood connection pool
     return this.pool.query<T>(text, params);
   }
 }
