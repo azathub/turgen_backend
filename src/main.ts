@@ -5,6 +5,21 @@ import { AppModule } from './app.module.js';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const allowedOrigins = (process.env.CORS_ORIGINS ?? '')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+  if (allowedOrigins.includes('*')) {
+    throw new Error('CORS_ORIGINS must list explicit origins; wildcard is not allowed');
+  }
+
+  app.enableCors({
+    origin: allowedOrigins.length > 0 ? allowedOrigins : false,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  });
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -26,6 +41,6 @@ async function bootstrap() {
     jsonDocumentUrl: 'docs-json',
   });
 
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(process.env.PORT ?? 3000, process.env.HOST ?? '0.0.0.0');
 }
 await bootstrap();

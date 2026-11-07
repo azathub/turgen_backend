@@ -49,9 +49,27 @@ npm run start:dev
 ```
 
 Interactive Swagger UI is at `http://localhost:3000/docs`; the OpenAPI JSON is
-at `http://localhost:3000/docs-json`. Set `PORT` to change the listening port
-and `PUBLIC_API_URL` to configure the public base URL returned by the share-link
-endpoint.
+at `http://localhost:3000/docs`. To let developers on the same Wi-Fi access
+the API, start the app on all network interfaces (the default `HOST` is
+`0.0.0.0`) and give them your computer's private IPv4 address, for example
+`http://192.168.1.10:3000`. They can open
+`http://192.168.1.10:3000/docs` for Swagger. Find the address with `ip addr`
+on Linux, `ipconfig` on Windows, or `ifconfig` on macOS. Set `PORT` to change
+the listening port and `HOST` to override the bind address. Set
+`PUBLIC_API_URL` to your computer's LAN URL if external share links should use
+that address.
+
+Browser-based web clients must have their exact origins listed in
+`CORS_ORIGINS` as a comma-separated list (scheme and port included when
+applicable), for example `http://localhost:5173` for a Vite development
+frontend. Set these on the API computer before starting it. Wildcard origins
+are not accepted. Native mobile clients do not use browser CORS and can call
+the API at your computer's LAN URL directly.
+
+Make sure your computer's firewall allows inbound connections to the API port
+from your local network. Do not configure router port forwarding: this setup
+is for the same Wi-Fi/LAN only. Public news routes are unauthenticated by
+design; admin and account actions require JWT authentication.
 
 ## Public news API
 
